@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AeroHydro — Hydraulic System Safety Simulator</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-icon">✈</span>
+        <span class="brand-name">AeroHydro</span>
+        <span class="brand-tag">Hydraulic Safety Simulator</span>
+      </div>
+      <nav class="header-nav">
+        <a href="#simulator">Simulator</a>
+        <a href="#analysis">Analysis</a>
+        <a href="#about">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero" id="simulator">
+    <div class="hero-bg"></div>
+    <div class="container">
+      <div class="hero-text">
+        <h1>Where should hydraulic lines<br><em>actually</em> meet?</h1>
+        <p>A data-science simulation of aircraft hydraulic junction safety — modelling vibration, pressure loads, thermal stress, and maintenance access across every fuselage zone.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTROLS -->
+  <section class="section controls-section" id="controls">
+    <div class="container">
+      <h2 class="section-title">Mission parameters</h2>
+      <div class="controls-grid">
+
+        <div class="ctrl-group">
+          <label for="acType">Aircraft type</label>
+          <select id="acType">
+            <option value="narrowbody">Narrowbody (737-class)</option>
+            <option value="widebody">Widebody (777-class)</option>
+            <option value="fighter">Fighter jet (F-class)</option>
+            <option value="turboprop">Regional turboprop</option>
+          </select>
+        </div>
+
+        <div class="ctrl-group">
+          <label for="altitude">Cruise altitude — <span id="altOut" class="val-out">35,000 ft</span></label>
+          <input type="range" id="altitude" min="10000" max="45000" step="1000" value="35000" />
+          <div class="range-labels"><span>10,000 ft</span><span>45,000 ft</span></div>
+        </div>
+
+        <div class="ctrl-group">
+          <label for="pressure">System pressure — <span id="pressOut" class="val-out">3,000 PSI</span></label>
+          <input type="range" id="pressure" min="1500" max="5000" step="100" value="3000" />
+          <div class="range-labels"><span>1,500 PSI</span><span>5,000 PSI</span></div>
+        </div>
+
+        <div class="ctrl-group">
+          <label for="turb">Turbulence level</label>
+          <select id="turb">
+            <option value="0">None (CAT 0)</option>
+            <option value="1" selected>Light (CAT 1)</option>
+            <option value="2">Moderate (CAT 2)</option>
+            <option value="3">Severe (CAT 3)</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Quick Scenarios -->
+      <div class="scenarios">
+        <span class="scenarios-label">Quick scenarios:</span>
+        <button class="scenario-btn" data-scenario="nominal">🛫 Nominal cruise</button>
+        <button class="scenario-btn" data-scenario="storm">⛈ Storm penetration</button>
+        <button class="scenario-btn" data-scenario="military">🚀 Military intercept</button>
+        <button class="scenario-btn" data-scenario="lowalt">🏔 Low-altitude ops</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- METRIC CARDS -->
+  <section class="section metrics-section">
+    <div class="container">
+      <div class="metrics-grid" id="metricGrid"></div>
+    </div>
+  </section>
+
+  <!-- VERDICT BANNER -->
+  <section class="section verdict-section">
+    <div class="container">
+      <div class="verdict-card" id="verdict"></div>
+    </div>
+  </section>
+
+  <!-- BAR CHART: Zone Rankings -->
+  <section class="section" id="analysis">
+    <div class="container">
+      <h2 class="section-title">Zone safety rankings</h2>
+      <p class="section-sub">Each bar represents the composite safety score (0–100) for placing hydraulic junctions in that fuselage zone, given current parameters.</p>
+      <div class="bar-chart-wrap" id="barChart"></div>
+    </div>
+  </section>
+
+  <!-- RADAR + LINE side by side -->
+  <section class="section charts-section">
+    <div class="container">
+      <div class="charts-row">
+
+        <div class="chart-card">
+          <h3>Risk factor breakdown</h3>
+          <p class="chart-sub">Select a zone to inspect its individual risk dimensions</p>
+          <div class="zone-btn-row" id="zoneBtns"></div>
+          <div class="chart-canvas-wrap">
+            <canvas id="radarChart" role="img" aria-label="Radar chart showing 5 risk dimensions for the selected hydraulic junction zone"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h3>Safety vs altitude</h3>
+          <p class="chart-sub">How each zone's safety score changes across altitude bands</p>
+          <div class="chart-canvas-wrap">
+            <canvas id="lineChart" role="img" aria-label="Line chart of safety score vs altitude for all fuselage zones"></canvas>
+          </div>
+          <div class="chart-legend" id="lineLegend"></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- DATA TABLE -->
+  <section class="section table-section">
+    <div class="container">
+      <h2 class="section-title">Full data table</h2>
+      <p class="section-sub">Raw scores for every zone and risk dimension under current parameters.</p>
+      <div class="table-wrap">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th>Zone</th>
+              <th>Vib. Safety</th>
+              <th>Pressure Safety</th>
+              <th>Thermal Safety</th>
+              <th>Maintenance Access</th>
+              <th>Exposed?</th>
+              <th>Overall Score</th>
+              <th>Rating</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT / METHODOLOGY -->
+  <section class="section about-section" id="about">
+    <div class="container">
+      <h2 class="section-title">Methodology</h2>
+      <div class="about-grid">
+        <div class="about-card">
+          <div class="about-icon">📐</div>
+          <h4>Structural vibration model</h4>
+          <p>Vibration risk is computed from each zone's base susceptibility, scaled by turbulence category and aircraft type. Aerodynamic flutter at exposed surfaces (fin tip, wing tip) is modeled with a 60% turbulence amplifier.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-icon">💧</div>
+          <h4>Pressure load analysis</h4>
+          <p>Hydraulic system pressure (1,500–5,000 PSI) combines with each zone's structural load baseline. Higher pressures magnify risk at already-loaded zones like wing roots and engine pylons.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-icon">🌡</div>
+          <h4>Thermal stress scoring</h4>
+          <p>Altitude-driven temperature differentials stress seals and fittings. Engine pylon zones are penalized heavily for proximity to exhaust heat. Scores scale with cruise altitude.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-icon">🔧</div>
+          <h4>Maintenance accessibility</h4>
+          <p>Inaccessible junctions cannot be inspected or repaired efficiently. Extreme locations (fin tip, wing tip) score low — a hidden leak in a hard-to-reach spot is a critical safety failure.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-icon">🌬</div>
+          <h4>Structural exposure penalty</h4>
+          <p>Zones exposed to direct aerodynamic loads receive a 15-point penalty. The vertical fin tip is a canonical example: it flexes under lateral wind loads, and any junction here risks fatigue cracking.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-icon">🧮</div>
+          <h4>Composite score formula</h4>
+          <p><code>Score = (1 − [Vib×0.30 + Press×0.30 + Therm×0.20 + (1−Access)×0.20 + ExposedPenalty]) × 100</code><br><br>Weights reflect real engineering priorities: vibration and pressure are the dominant failure modes in hydraulic junctions.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container">
+      <p>AeroHydro — Aircraft Hydraulic Safety Simulator · Built with data science + aerospace engineering principles · For educational and research use.</p>
+    </div>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="model.js"></script>
+  <script src="charts.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
